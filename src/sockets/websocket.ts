@@ -2,12 +2,9 @@
 import { Server } from 'socket.io';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { createClient } from 'redis';
-import { ChatService } from '../services/chat.service';
-import { Loader } from '../startup/loader';
 import { ConversationDomainModel } from '../domain.types/chat/conversation.domain.model';
-import { ConversationDto } from '../domain.types/chat/conversation.dto';
 import { ChatMessageDomainModel } from "../domain.types/chat/chat.message.domain.model";
-import { ChatMessageDto } from "../domain.types/chat/chat.message.dto";
+import { MessageQueue } from './message.queue';
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -22,8 +19,10 @@ export class Websocket {
     static _redisSubClient = null;
 
     public static initialize(io: Server): void {
+
         this._io = io;
         const adapterType = process.env.SOCKET_IO_ADAPTER;
+
         if (! this._adapterInitialized) {
             if (adapterType === 'redis') {
                 const redisURL = process.env.REDIS_HOST; // Use default if not provided
@@ -57,36 +56,35 @@ export class Websocket {
 
             // Event listener for when a user joins the chat
             socket.on('user join', (username) => {
-            // Emit a message to all clients indicating a user has joined the chat
+
+                // Emit a message to all clients indicating a user has joined the chat
                 io.emit('user joined', `${username} joined the chat`);
 
                 //Create a room for the conversation
+                const conversationModel: ConversationDomainModel = {
+                    // id?                 : uuid;
+                    // IsGroupConversation?: boolean;
+                    // Topic?              : string;
+                    // Marked?             : boolean;
+                    // InitiatingUserId?   : uuid;
+                    // OtherUserId?        : uuid;
+                };
 
-
-
+                MessageQueue.startOrUpdateConversation(conversationModel);
             });
 
             // Event listener for handling chat messages
             socket.on('chat message', (message) => {
-                // Emit the received chat message to all connected clients
 
+                // Emit the received chat message to all connected clients
                 io.emit('chat message', message);
 
-                //TODO: Save the message to the database through the service
-
-                //1. Get chat service
-                const chatService = Loader.container.resolve(ChatService);
-
-                //3. Convert the message to a domain model
-                // const messageModel: ChatMessageDomainModel = {
-                //     ConversationId : message.room,
-                //     Message        : message.message,
-                //     SenderId       : message.username,
-                // };
-
-                // //2. Save the message
-                // const messageRecord = await chatService.sendMessage(message);
-
+                const messageModel: ChatMessageDomainModel = {
+                    ConversationId : message.room,
+                    Message        : message.message,
+                    SenderId       : message.username,
+                };
+                MessageQueue.storeMessage(messageModel);
             });
 
             // Event listener for handling disconnection of a user
