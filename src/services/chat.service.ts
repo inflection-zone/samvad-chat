@@ -20,8 +20,8 @@ export class ChatService {
         return await this._chatRepo.startConversation(model);
     };
 
-    sendMessage = async (id: ChatMessageDomainModel): Promise<ChatMessageDto> => {
-        return await this._chatRepo.sendMessage(id);
+    sendMessage = async (model: ChatMessageDomainModel): Promise<ChatMessageDto> => {
+        return await this._chatRepo.sendMessage(model);
     };
 
     getConversationMessages = async (conversationId: uuid): Promise<ChatMessageDto[]> => {

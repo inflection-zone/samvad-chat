@@ -1,12 +1,14 @@
 import cors from 'cors';
-import express from 'express';
-import fileUpload from 'express-fileupload';
-import helmet from 'helmet';
+import http from 'http';
 import "reflect-metadata";
+import express from 'express';
+import helmet from 'helmet';
+import { Server } from 'socket.io';
 import { Router } from './api/router';
 import { Logger } from './common/logger';
 import { ConfigurationManager } from "./config/configuration.manager";
 import { Loader } from './startup/loader';
+import { Websocket } from './sockets/websocket';
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -16,11 +18,22 @@ export default class Application {
 
     private _router: Router = null;
 
+    private _server: http.Server = null;
+
+    private _io: Server = null;
+
     private static _instance: Application = null;
 
     private constructor() {
         this._app = express();
         this._router = new Router(this._app);
+        this._server = http.createServer(this._app);
+        this._io = new Server(this._server, {
+            cors : {
+                origin : '*'
+            }
+        });
+        Websocket.initialize(this._io);
     }
 
     public static instance(): Application {
@@ -80,17 +93,6 @@ export default class Application {
                 this._app.use(express.json());
                 this._app.use(helmet());
                 this._app.use(cors());
-
-                const MAX_UPLOAD_FILE_SIZE = ConfigurationManager.MaxUploadFileSize();
-
-                this._app.use(fileUpload({
-                    limits            : { fileSize: MAX_UPLOAD_FILE_SIZE },
-                    preserveExtension : true,
-                    createParentPath  : true,
-                    parseNested       : true,
-                    useTempFiles      : true,
-                    tempFileDir       : '/tmp/uploads/'
-                }));
                 resolve(true);
             }
             catch (error) {
