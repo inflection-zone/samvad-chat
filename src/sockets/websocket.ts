@@ -18,7 +18,7 @@ export class Websocket {
 
     static _redisSubClient = null;
 
-    public static initialize(io: Server): void {
+    public static initialize(io:Server): void {
 
         this._io = io;
         const adapterType = process.env.SOCKET_IO_ADAPTER;
