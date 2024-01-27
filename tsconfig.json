@@ -4,12 +4,12 @@
         "incremental": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
-        "module": "commonjs",
+        "module": "CommonJS",
         "esModuleInterop": true,
         "target": "es6",
         "listFiles":true,
         "noImplicitAny": false,
-        "moduleResolution": "node",
+        "moduleResolution": "Node",
         "sourceMap": true,
         "noEmitHelpers":false,
         "alwaysStrict": true,
@@ -29,7 +29,7 @@
     "include": [
         "src/**/*",
         "tests/*"],
-    "exclude":[ 
+    "exclude":[
         "node_modules"
     ],
 }

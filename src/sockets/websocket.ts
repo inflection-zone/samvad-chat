@@ -25,7 +25,7 @@ export class Websocket {
 
         if (! this._adapterInitialized) {
             if (adapterType === 'redis') {
-                const redisURL = process.env.REDIS_HOST; // Use default if not provided
+                const redisURL = `${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`; // Use default if not provided
                 this._redisPubClient = createClient({ url: redisURL });
                 this._redisSubClient = this._redisPubClient.duplicate();
                 this._io.adapter(createAdapter(this._redisPubClient, this._redisSubClient));

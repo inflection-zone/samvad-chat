@@ -4,7 +4,7 @@ import * as crypto from 'crypto';
 import express from 'express';
 import * as fs from 'fs';
 import { generate } from 'generate-password';
-import mime = require('mime-types');
+import * as mime from 'mime-types';
 import path from 'path';
 import { ConfigurationManager } from '../config/configuration.manager';
 import { Gender } from '../domain.types/miscellaneous/system.types';
@@ -31,7 +31,7 @@ export class Helper {
     static hasProperty = (obj, prop) => {
         return Object.prototype.hasOwnProperty.call(obj, prop);
     }
-    
+
     static isUrl = (str) => {
         if (!str) {
             return false;
@@ -48,7 +48,7 @@ export class Helper {
         const txt = JSON.stringify(obj, null, '    ');
         fs.writeFileSync(filename, txt);
     }
-    
+
     static jsonToObj = (jsonPath) => {
 
         if (!fs.existsSync(jsonPath)) {
@@ -300,7 +300,7 @@ export class Helper {
         }
         return Promise.resolve();
     }
-    
+
     public static sleep = (miliseconds) => {
         return new Promise((resolve) => {
             setTimeout(resolve, miliseconds);
@@ -401,7 +401,7 @@ export class Helper {
 
         return downloadFolderPath;
     };
-    
+
     public static createTempDownloadFolder = async() => {
         var tempDownloadFolder = ConfigurationManager.DownloadTemporaryFolder();
         if (fs.existsSync(tempDownloadFolder)) {
@@ -410,7 +410,7 @@ export class Helper {
         await fs.promises.mkdir(tempDownloadFolder, { recursive: true });
         return tempDownloadFolder;
     };
-    
+
     public static createTempUploadFolder = async() => {
         var tempUploadFolder = ConfigurationManager.UploadTemporaryFolder();
         if (fs.existsSync(tempUploadFolder)) {
@@ -426,7 +426,7 @@ export class Helper {
         var ext = extension.startsWith('.') ? extension : '.' + extension;
         return tmp + ext;
     };
-    
+
     public static getMimeType = (pathOrExtension: string) => {
         var mimeType = mime.lookup(pathOrExtension);
         if (!mimeType) {
@@ -434,7 +434,7 @@ export class Helper {
         }
         return mimeType;
     };
-    
+
     public static getValueForEitherKeys = (obj: any, keys: string[]): string => {
         const existingKeys = Object.keys(obj);
         for (var key of keys) {

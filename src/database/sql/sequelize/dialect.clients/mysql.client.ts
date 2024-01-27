@@ -1,12 +1,12 @@
 
-import mysql = require('mysql2');
+import * as mysql from 'mysql2';
 import { Logger } from '../../../../common/logger';
 import { DbConfig } from '../database.config';
 
 ////////////////////////////////////////////////////////////////
 
 export class MysqlClient {
-    
+
     public static createDb = async () => {
         try {
             const config = DbConfig.config;
@@ -34,16 +34,16 @@ export class MysqlClient {
         return new Promise((resolve, reject) => {
             try {
                 const config = DbConfig.config;
-    
+
                 const connection = mysql.createConnection({
                     host     : config.host,
                     user     : config.username,
                     password : config.password,
                 });
-    
+
                 connection.connect(function (err) {
                     if (err) {
-                        throw err;
+                        reject(err);
                     }
 
                     //Logger.instance().log('Connected!');
@@ -67,7 +67,7 @@ export class MysqlClient {
                 Logger.instance().log(error.message);
             }
         });
-        
+
     };
 
 }

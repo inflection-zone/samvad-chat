@@ -11,8 +11,9 @@ import { DownloadDisposition, FileResourceMetadata } from '../../domain.types/fi
 import { FileResourceService } from '../../services/file.resource.service';
 import { Loader } from '../../startup/loader';
 import { FileResourceValidator } from './file.resource.validator';
-import AdmZip = require ('adm-zip');
 import { Helper } from '../../common/helper';
+import archiver from 'archiver';
+import { ConfigurationManager } from '../../config/configuration.manager';
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -110,6 +111,36 @@ export class FileResourceController {
         }
     };
 
+    zipFolder = async (sourceFolder: string, zipFileName: string): Promise<fs.ReadStream> => {
+        try {
+            var tempDownloadFolder = ConfigurationManager.DownloadTemporaryFolder();
+            var zipFilePath = path.join(tempDownloadFolder, zipFileName);
+
+            // Create a write stream to the zip file
+            const output = fs.createWriteStream(zipFilePath);
+
+            // Create an archiver instance
+            const archive = archiver('zip', {
+                zlib : { level: 9 } // Set compression level (optional)
+            });
+
+            // Pipe the output stream to the zip file
+            archive.pipe(output);
+
+            // Add the flattened folder to the archive
+            archive.directory(sourceFolder, false);
+
+            // Finalize the archive
+            await archive.finalize();
+            console.log(`Successfully zipped ${sourceFolder} to ${zipFilePath}`);
+
+            return fs.createReadStream(zipFilePath);
+
+        } catch (error) {
+            console.error('Error flattening or zipping the folder:', error);
+        }
+    };
+
     searchAndDownload = async (request: express.Request, response: express.Response): Promise<void> => {
         try {
             request.context = 'FileResource.SearchAndDownload';
@@ -122,20 +153,14 @@ export class FileResourceController {
             if (filenames.length === 0) {
                 throw new ApiError(404, 'File resources are not found.');
             }
-
-            var zipper = new AdmZip();
-            for await (var f of filenames) {
-                var fullFilePath = path.join(downloadedFolder, f);
-                zipper.addLocalFile(fullFilePath);
-            }
             var timestamp = TimeHelper.timestamp(new Date());
-            var zipFile = `${timestamp}.zip`;
-            const data = zipper.toBuffer();
+            var zipFileName = `${timestamp}.zip`;
+            const stream_ = await this.zipFolder(downloadedFolder, zipFileName);
 
             response.set('Content-Type', 'application/octet-stream');
-            response.set('Content-Disposition', `attachment; filename=${zipFile}`);
-            response.set('Content-Length', data.length.toString());
-            response.send(data);
+            response.set('Content-Disposition', `attachment; filename=${zipFileName}`);
+            // response.set('Content-Length', data.length.toString());
+            response.send(stream_);
 
         } catch (error) {
             ResponseHandler.handleError(request, response, error);

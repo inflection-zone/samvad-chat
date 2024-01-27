@@ -24,12 +24,12 @@ export class Seeder {
         this._apiClientService = Loader.container.resolve(ApiClientService);
         this._fileResourceService = Loader.container.resolve(FileResourceService);
     }
-    
+
     public init = async (): Promise<void> => {
         try {
             await this.createTempFolders();
             await this.seedInternalClients();
-            
+
         } catch (error) {
             Logger.instance().log(error.message);
         }
